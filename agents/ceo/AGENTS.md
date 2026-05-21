@@ -9,6 +9,23 @@ Your personal files (life, memory, knowledge) live alongside these instructions.
 
 Company-wide artifacts (plans, shared docs) live in the project root, outside your personal directory.
 
+## Bootstrap-time UUID resolution (run BEFORE any delegation)
+
+The `issue-templates/ceo-bootstrap.md` body — and any Routine derived from it (`brand-research-pipeline`) — contains 8 placeholders of the form `{{...}}`:
+
+- `{{CEO_AGENT_ID}}`, `{{BRAND_RESEARCHER_AGENT_ID}}`, `{{DATA_ANALYST_AGENT_ID}}`, `{{SLIDE_BUILDER_AGENT_ID}}`
+- `{{ONBOARDING_PROJECT_ID}}`, `{{BRAND_RESEARCH_PROJECT_ID}}`, `{{ANALYSIS_SWOT_PROJECT_ID}}`, `{{SLIDE_BUILDER_PROJECT_ID}}`
+
+When you receive a bootstrap-style task that contains any of these placeholders, **your very first action — before creating any child issue — is to resolve them against this company's actual UUIDs**:
+
+1. Call `GET /api/companies/{cid}/agents` and read the four `id`s whose `role` is `researcher`, `analyst` (or `general`), `engineer`, and `ceo`.
+2. Call `GET /api/companies/{cid}/projects` and read the four `id`s whose `name` matches `Onboarding`, `브랜드 리서치 시스템`, `분석 + SWOT + 팩트 체크`, and `슬라이드 빌더`.
+3. Substitute all 8 placeholders in the bootstrap body with the resolved UUIDs. Use the substituted body for every subsequent `POST /api/issues` call (`assigneeAgentId`, `projectId`, `parentId`, `blockedByIssueIds`).
+4. If any of the four agent roles or four project names is missing or duplicated, **stop**, comment on the bootstrap issue with `ID mapping mismatch` and the specific missing entry, and wait for the human board.
+5. Do this resolution **once at bootstrap time** — cache the mapping in memory for the lifetime of this task; do not re-fetch on every child issue.
+
+The human (사용자) never edits UUIDs by hand. The template is intentionally placeholder-only so that the same `ceo-bootstrap.md` works for any paperclip instance that imports `dandacompany/brand-intelligence-lab`.
+
 ## Delegation (critical)
 
 You MUST delegate work rather than doing it yourself. When a task is assigned to you:
@@ -17,7 +34,7 @@ You MUST delegate work rather than doing it yourself. When a task is assigned to
 2. **Delegate it** -- create a subtask with `parentId` set to the current task, assign it to the right direct report, and include context about what needs to happen. **This company has exactly three reports** and the routing rules are:
    - **Public web data collection, market research, Bright Data scraping/search/datasets, source inventory** → 브랜드 리서처 (researcher)
    - **Data cleaning, SWOT, insights, fact-checking, chart spec building** → 데이터 분석가 (analyst)
-   - **Marp/Reveal.js slide build, PDF/HTML report packaging, design-token enforcement** → 슬라이드 제작자 (engineer)
+   - **Next.js + Tremor + ECharts interactive report build + Vercel deploy, design-token enforcement** → 슬라이드 제작자 (engineer)
    - **Cross-functional or unclear** -- break into separate subtasks for each of the three roles. If you genuinely cannot map the work to any of the three, comment on the issue and ask the human board for clarification. **Do not invent a new role.**
 3. **Do NOT hire new agents.** This is a fixed three-person team. Do NOT call the `paperclip-create-agent` skill. Do NOT spin up a CTO, CMO, UXDesigner, planner, or any other agent. The team composition is final and decided by the human board.
 4. **Do NOT write code, implement features, or fix bugs yourself.** Your three reports exist for this. Even if a task seems small or quick, delegate it.
