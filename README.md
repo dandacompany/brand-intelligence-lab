@@ -52,8 +52,17 @@
 ## Getting Started
 
 ```bash
-pnpm paperclipai company import this-github-url-or-folder
+# 한 줄로 회사 + 4 agents + 4 projects + 16 skills 셋업
+paperclipai company import https://github.com/dandacompany/brand-intelligence-lab --ref master --yes
 ```
+
+### Import 가 채우지 않는 것 — Goals
+
+> **주의**: 현재 `paperclipai/v1` 매니페스트 schema 는 **Goals** (최상위 목표 + 세부 목표 트리) 를 portable 하게 표현하지 못합니다. 회사 import 는 회사·에이전트·프로젝트·스킬만 셋업하고, **goals 는 비어 있는 상태**로 시작합니다.
+>
+> 영상 튜토리얼의 **§04 (최상위 목표 등록)** 과 **§05 (세부 목표 3개)** 단계에서 페이퍼클립 콘솔 GUI 로 직접 만들거나, 또는 4개의 POST API 호출로 셋업할 수 있습니다.
+>
+> Goals 셋업 후에는 각 Project 를 PATCH 로 해당 세부 goal 에 연결해 주세요 (콘솔의 Project 설정 또는 `PATCH /api/projects/{id}` 의 `goalId` 필드).
 
 See [Paperclip](https://paperclip.ing) for more information.
 
