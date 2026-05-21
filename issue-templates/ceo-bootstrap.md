@@ -189,13 +189,13 @@ workspace 안에 구조화 파일로 떨굽니다.
 
 ---
 
-## 단계 3 — 슬라이드 제작자에게 위임
+## 단계 3 — 슬라이드 제작자에게 위임 (Next.js + Tremor + Vercel 인터랙티브 보고서)
 
 - **assigneeAgentId**: `ed8c280b-cdce-45fb-9aee-74058d14f0a4` (슬라이드 제작자)
 - **projectId**: `caa19fe2-c756-4c31-9b30-0ce19bd3c8be` (슬라이드 빌더)
 - **parentId**: 이 부트스트랩 issue 의 id
 - **blockedByIssueIds**: [단계 2 child issue id]
-- **title**: `[무신사] 시장조사 보고서 12~15장 Marp 빌드 + PDF`
+- **title**: `[무신사] 시장조사 인터랙티브 보고서 빌드 + Vercel 배포`
 - **description**: 아래 "본문 — 단계 3" 그대로 사용
 
 ### 본문 — 단계 3
@@ -204,78 +204,111 @@ workspace 안에 구조화 파일로 떨굽니다.
 # 임무
 
 브랜드 리서처(단계 1)와 데이터 분석가(단계 2)의 산출물을 입력으로 받아,
-임원 보고용 시장조사 보고서 12~15장 슬라이드를 Marp 마크다운으로 작성하고
-PDF·HTML 로 빌드합니다.
+임원 보고용 **인터랙티브 웹 보고서**를 Next.js + shadcn/ui + Tremor + ECharts 로 빌드하고
+Vercel 에 배포합니다. 정적 PDF 가 아니라 단테가 슬랙·이메일로 공유 가능한 URL 을 만듭니다.
 
 # 입력
 
-- workspace/cleaned_data.parquet
-- workspace/insights.md
-- workspace/swot_matrix.json
-- workspace/fact_check.md
-- workspace/chart_spec.json
+- workspace/{BRAND}/data/cleaned_data.parquet
+- workspace/{BRAND}/data/insights.md
+- workspace/{BRAND}/data/swot_matrix.json
+- workspace/{BRAND}/data/fact_check.md
+- workspace/{BRAND}/data/chart_spec.json
+- workspace/{BRAND}/data/competitor_matrix_normalized.csv
 - 단계 1·2 의 paperclip 코멘트
 
 # 사용 도구 (코멘트 첫 줄)
 
-- Marp (marp-cli) — 마크다운 → PDF/HTML
-- matplotlib 또는 plotly — chart_spec.json 기반 PNG 생성
-- (회사 라이브러리의 marp-slide-build 스킬에 가이드 있음)
+- Next.js 15 + App Router + TypeScript + Tailwind
+- shadcn/ui (Card · Tabs · Accordion · Table)
+- Tremor (KPI · BarChart · LineChart · DonutChart)
+- ECharts (Treemap · Geo · Network — 복잡 차트)
+- Vercel CLI (배포)
+- 회사 라이브러리의 **`nextjs-tremor-report`** 스킬에 풀 가이드 있음
 
-# 슬라이드 구성 (12~15장 표준)
-
- 1. 표지 + 한 줄 결론
- 2. 브랜드 개요
- 3. 제품·서비스 라인업
- 4. 경쟁사 매트릭스
- 5. 검색 트렌드 (12개월)
- 6. 언론·SNS 멘션
- 7. 리뷰 분석
- 8. 가격 정책 비교
- 9. 시장 점유 / 카테고리 동향
-10. SWOT 매트릭스
-11. 기회·리스크 TOP 3
-12. 시사점 + 다음 액션
-
-# 디자인 가드 (단테랩스 톤)
-
-- paper + ink + rust accent
-- 명조 세리프 본문, 슬랩 세리프 헤더
-- 좌측 4px rust accent stripe
-- 금지: 글래스모피즘 · 그라데이션 블롭 · 네온 · blur shadow · 이모지
-
-# 빌드 명령 (한글 깨짐 방지 + CHROME_PATH 명시 + 자가 검증)
+# 사전 점검 (시작 전 통과해야 함)
 
 ```bash
-cd /workspace/musinsa
-
-# CHROME_PATH 는 setup.sh 가 ~/.bashrc 에 영속해 두었으면 자동 설정.
-: "${CHROME_PATH:=/paperclip/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome}"
-export CHROME_PATH
-
-# 빌드 전 사전 점검 (세 가지 모두 통과해야 한글 정상 출력):
-#   1) fc-list :lang=ko | head        — Noto Sans/Serif CJK KR 인식 확인
-#   2) ls -la "$CHROME_PATH"          — chromium 바이너리 존재
-#   3) ldd "$CHROME_PATH" | grep "not found"  — 미해결 공유 라이브러리 0건
-# 하나라도 빠지면 즉시 child issue 로 "fonts-noto-cjk 설치" 또는
-# "Chromium 의존성 설치" (apt-get) 인프라 위임. 회사 setup.sh 가 처음에
-# 실행됐다면 세 가지 모두 통과한다.
-
-marp report.md --pdf  --allow-local-files -o report.pdf
-marp report.md --html --allow-local-files -o report.html
-
-# PDF 한글 자가 검증:
-#   pdftotext -enc UTF-8 report.pdf - | head -5
-# 본문에 한글이 □□ 가 아닌 정상 글자로 보이면 OK. □□ 면 fonts-noto-cjk
-# 누락 → fc-cache -fv 후 재빌드.
+node --version          # ≥ 20
+vercel --version        # vercel CLI 존재 (setup.sh 가 설치)
+echo "${VERCEL_API_TOKEN:0:8}***"   # paperclip secrets 에서 자동 주입됨
 ```
 
-# 디자인·폰트 가드 (재차 강조)
+`VERCEL_API_TOKEN` 이 비어 있으면 즉시 단테에게 코멘트로 알리고 진행 중단.
+(paperclip 콘솔 → Settings → Secrets 에 VERCEL_API_TOKEN 등록 필요)
 
-- Marp theme 또는 frontmatter style 에 한글 폰트 명시 권장:
-  `style: section { font-family: "Noto Serif CJK KR", "Noto Sans CJK KR", serif; }`
-- 시스템 폰트가 없으면 chromium 이 fallback (Liberation Serif 등) 을 쓰는데, fallback 은 한글 글리프가 없어 □□ 로 출력된다.
-- 빌드 후 반드시 `pdftotext` 또는 PDF 뷰어로 한글 정상 표시 확인을 코멘트에 기록.
+# 스캐폴딩 + 빌드
+
+```bash
+WS=/workspace/{BRAND}
+cd $WS
+mkdir -p report-app && cd report-app
+
+# 1) Next.js + Tailwind + shadcn/ui
+npx create-next-app@latest . --typescript --tailwind --app --no-src-dir \
+  --import-alias "@/*" --yes
+npx shadcn@latest init --yes --base-color slate --css-variables true
+npx shadcn@latest add card tabs accordion sheet button badge separator table --yes
+
+# 2) Tremor + ECharts
+npm i @tremor/react echarts echarts-for-react
+
+# 3) Tailwind config 의 theme.extend 에 단테랩스 토큰 추가:
+#    colors: { paper:"#F7F2E6", ink:"#1a1a1a", rust:"#A0522D" }
+#    fontFamily: { serif:["Noto Serif KR","Noto Serif CJK KR","serif"],
+#                  sans: ["Noto Sans KR","Noto Sans CJK KR","system-ui"] }
+#    (자세한 토큰은 nextjs-tremor-report 스킬 참조)
+
+# 4) 페이지 구성 (분석가 산출물 → 컴포넌트 매핑)
+#    app/page.tsx            홈: 핵심 인사이트 5개 (Tremor Metric Card)
+#    app/swot/page.tsx       SWOT 2x2 grid (shadcn Card)
+#    app/charts/page.tsx     Tremor 4개 + ECharts 2개
+#    app/fact-check/page.tsx Accordion (정성 인용 10건 재검증)
+#    app/competitors/page.tsx shadcn Table (경쟁사 정규화 CSV)
+
+# 5) 로컬 빌드 검증
+npm run build
+```
+
+# Vercel 배포
+
+```bash
+export VERCEL_TOKEN="$VERCEL_API_TOKEN"
+
+# 첫 배포면 link (프로젝트 자동 생성)
+vercel link --yes --token "$VERCEL_TOKEN" --project "brand-intelligence-{BRAND}"
+
+# production 배포
+vercel deploy --prod --yes --token "$VERCEL_TOKEN" 2>&1 | tee /tmp/vercel-deploy.log
+
+# 배포 URL 추출
+DEPLOY_URL=$(grep -oE 'https://[a-z0-9-]+\.vercel\.app' /tmp/vercel-deploy.log | tail -1)
+echo "DEPLOY_URL=$DEPLOY_URL"
+```
+
+# 자가 검증
+
+```bash
+# HTTP 200 + 한글 정상 표시
+curl -sI "$DEPLOY_URL" | head -1                                  # HTTP/2 200
+curl -s  "$DEPLOY_URL" | grep -oE "무신사|29CM|브랜드" | sort -u   # 한글 토큰 OK
+```
+
+# 디자인 가드 (단테랩스)
+
+- 색상: paper(#F7F2E6) + ink(#1a1a1a) + rust(#A0522D) — Tailwind config
+- 폰트: Noto Serif KR (본문) + Noto Sans KR (UI)
+- 좌측 4px rust accent stripe — 컴포넌트별 `border-l-4 border-rust pl-4`
+- corner radius ≤ 8px (Tailwind `rounded-lg` 까지만)
+- shadow: hard `shadow-[2px_2px_0_0_rgba(0,0,0,0.08)]` (컬러 드롭섀도 금지)
+- **금지**: 글래스모피즘 · backdrop-filter · mesh gradient · 네온 · 이모지 · 사진 배경 · 8px 초과 corner radius
+
+# 절대 제약
+
+- 데이터·문구 임의 가공 금지. 분석가 산출물 그대로 인용. 평가성 어휘 금지.
+- `VERCEL_API_TOKEN` 평문 노출 금지 (첫 8자 + ***). 환경변수로만 사용, 코드/코멘트 직접 게시 금지.
+- 결과는 반드시 paperclip API 코멘트로 POST + 배포 URL 명시.
+- Vercel 프로젝트 명은 `brand-intelligence-{BRAND}` 명명 규칙 준수.
 
 # 절대 제약
 
@@ -286,15 +319,17 @@ marp report.md --html --allow-local-files -o report.html
 
 # 출력 (코멘트)
 
-사용 도구: Marp + matplotlib
+사용 도구: Next.js 15 + shadcn/ui + Tremor + ECharts + Vercel
 
-| 항목             | 값                                                |
-| ---------------- | ------------------------------------------------- |
-| 슬라이드 수      | 12                                                |
-| 차트 수          | 5                                                 |
-| 핵심 파일        | report.md / report.pdf / report.html              |
-| 디자인 가드 위반 | 0건                                               |
-| PDF 경로         | /workspace/musinsa/report.pdf                     |
+| 항목              | 값                                                       |
+| ----------------- | -------------------------------------------------------- |
+| **배포 URL**      | https://brand-intelligence-{BRAND}-xxxx.vercel.app       |
+| 페이지 수         | 5 (홈 · SWOT · 차트 · 팩트체크 · 경쟁사)                 |
+| 차트 수           | 6 (Tremor 4 + ECharts 2)                                 |
+| 디자인 가드 위반  | 0건 (paper+ink+rust + Noto Serif/Sans KR)                |
+| Lighthouse        | Performance ≥90, Accessibility ≥95                       |
+| 한글 표시         | ✓ (curl + 시각 점검)                                     |
+| 빌드 시간         | XmYs                                                     |
 ````
 
 ---
@@ -335,16 +370,19 @@ marp report.md --html --allow-local-files -o report.html
 
 # 출력 (코멘트)
 
-| 단계                  | 무신사                          | 29CM                          | 일치 |
-| --------------------- | ------------------------------- | ----------------------------- | ---- |
-| 수집 6종 파일 수      | 6                               | 6                             | ✓    |
-| 슬라이드 수           | 12                              | 12                            | ✓    |
-| 디자인 가드 위반      | 0                               | 0                             | ✓    |
-| 빌드 시간             | XmYs                            | XmYs                          | -    |
-| PDF 경로              | /workspace/musinsa/report.pdf   | /workspace/29cm/report.pdf    | -    |
+| 단계                  | 무신사                                              | 29CM                                              | 일치 |
+| --------------------- | --------------------------------------------------- | ------------------------------------------------- | ---- |
+| 수집 6종 파일 수      | 6                                                   | 6                                                 | ✓    |
+| 분석 산출물 5종       | ✓                                                   | ✓                                                 | ✓    |
+| 보고서 페이지 수      | 5                                                   | 5                                                 | ✓    |
+| 차트 수               | 6                                                   | 6                                                 | ✓    |
+| 디자인 가드 위반      | 0                                                   | 0                                                 | ✓    |
+| 빌드 + 배포 시간      | XmYs                                                | XmYs                                              | -    |
+| **배포 URL**          | https://brand-intelligence-musinsa-xxxx.vercel.app  | https://brand-intelligence-29cm-xxxx.vercel.app   | -    |
 
 ## 결론
-브랜드만 갈아끼워 동일 구조 보고서 생성 가능 = 재현성 검증 OK.
+브랜드만 갈아끼워 동일 구조 인터랙티브 보고서 생성 가능 = 재현성 검증 OK.
+두 URL 을 슬랙·이메일로 임원진에게 공유 가능.
 ```
 
 ---

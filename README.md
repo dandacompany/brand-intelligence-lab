@@ -37,7 +37,8 @@
 | Skill | Description | Source |
 |-------|-------------|--------|
 | brand-research-glossary | B2C 브랜드 시장조사 산출물에서 표기·용어 일관성을 보장하는 회사 공통 용어 사전. 무신사·29CM·W컨셉·LF몰 등 한국 e-커머스/패션 브랜드 표기, Bright Data 제품 명칭(Web Unlocker · SERP API · Datasets · Scraping Browser), Marp/Reveal.js 슬라이드 형식 명칭을 통일한다. Brand Intelligence Lab 모든 에이전트가 상속한다. | [github](https://github.com/dandacompany/dante-skills/tree/main/brand-research-glossary) |
-| marp-slide-build | Marp 마크다운으로 임원 보고용 시장조사 보고서 슬라이드 12~15장을 빌드해 PDF·HTML로 출력하는 표준 패턴. 단테랩스 paper+ink+rust 디자인 가드와 12장 구성 골격을 강제한다. Brand Intelligence Lab 의 슬라이드 제작자 에이전트가 사용한다. | [github](https://github.com/dandacompany/dante-skills/tree/main/marp-slide-build) |
+| nextjs-tremor-report | Next.js 15 + shadcn/ui + Tremor + ECharts 인터랙티브 웹 보고서 빌드 + Vercel 배포. 분석가의 5종 산출물 → 5개 페이지 (홈 · SWOT · 차트 · 팩트체크 · 경쟁사) + Tailwind config 의 단테랩스 토큰 (paper+ink+rust + Noto Serif/Sans KR) 강제. Brand Intelligence Lab 의 슬라이드 제작자 에이전트가 사용한다. | [github](https://github.com/dandacompany/dante-skills/tree/main/nextjs-tremor-report) |
+| marp-slide-build (보조) | 정적 PDF 슬라이드가 필요한 경우의 대체 트랙. Brand Intelligence Lab 의 주 트랙은 `nextjs-tremor-report`. | [github](https://github.com/dandacompany/dante-skills/tree/main/marp-slide-build) |
 | report-evidence-citation | 모든 산출물에서 인용·근거를 보존하고 사실/의견을 분리하는 회사 공통 규칙. 출처 URL 누락, 추측 어휘 사용, 비공식 평가 발언을 차단한다. Brand Intelligence Lab 모든 에이전트가 상속한다. | [github](https://github.com/dandacompany/dante-skills/tree/main/report-evidence-citation) |
 | swot-from-signals | 브랜드 리서처가 수집한 정성·정량 신호로부터 SWOT(강점·약점·기회·위협) 매트릭스를 자동 도출하는 분석 패턴. 각 사분면 3개씩, 모든 항목에 근거 URL 또는 시그널 값을 명시한다. Brand Intelligence Lab 의 데이터 분석가 에이전트가 사용한다. | [github](https://github.com/dandacompany/dante-skills/tree/main/swot-from-signals) |
 | diagnose-why-work-stopped | > | [github](https://github.com/paperclipai/paperclip/tree/master/skills/diagnose-why-work-stopped) |
@@ -55,6 +56,14 @@
 # 한 줄로 회사 + 4 agents + 4 projects + 16 skills 셋업
 paperclipai company import https://github.com/dandacompany/brand-intelligence-lab --ref master --yes
 ```
+
+### Import 가 채우지 않는 것 — VERCEL_API_TOKEN secret
+
+회사 import 후 슬라이드 제작자가 인터랙티브 보고서를 Vercel 에 배포하려면 `VERCEL_API_TOKEN` 이 필요하다. paperclip 의 **Company → Settings → Secrets** 에서 직접 등록한다. paperclip 이 에이전트 런타임에 자동 주입한다.
+
+1. [Vercel Tokens 페이지](https://vercel.com/account/tokens) 에서 새 토큰 발급 (Scope: Full Account, Expiration: 본인 정책)
+2. paperclip 콘솔 → Settings → Secrets → New Secret → name=`VERCEL_API_TOKEN`, value=발급한 토큰
+3. 슬라이드 제작자가 다음 wake 시 `process.env.VERCEL_API_TOKEN` 으로 자동 사용
 
 ### Import 가 채우지 않는 것 — Goals
 

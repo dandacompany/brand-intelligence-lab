@@ -31,7 +31,7 @@ agents:
   agent-3:
     role: "engineer"
     icon: "file-code"
-    capabilities: "Marp/Reveal.js 보고서 빌더 + 디자인 가드"
+    capabilities: "Next.js 15 + shadcn/ui + Tremor + ECharts 인터랙티브 보고서 빌더 + Vercel 배포 + 단테랩스 디자인 가드 (paper+ink+rust, Noto Serif/Sans KR)"
     adapter:
       config:
         dangerouslyBypassApprovalsAndSandbox: true

@@ -41,14 +41,15 @@ apt-get install -y --no-install-recommends \
   postgresql-client \
   ca-certificates curl
 
-# ─── 2. NPM 글로벌 — brightdata CLI + Marp CLI ───────────────────
+# ─── 2. NPM 글로벌 — brightdata CLI + Marp CLI + Vercel CLI ──────
 echo ""
-echo "[2/3] NPM 글로벌 패키지 — brightdata CLI + Marp CLI..."
-npm i -g @brightdata/cli @marp-team/marp-cli
+echo "[2/3] NPM 글로벌 패키지 — brightdata CLI + Marp CLI + Vercel CLI..."
+npm i -g @brightdata/cli @marp-team/marp-cli vercel
 
 echo ""
 echo "  • brightdata $(brightdata --version 2>/dev/null) 설치 완료"
 echo "  • marp $(marp --version 2>/dev/null | head -1) 설치 완료"
+echo "  • vercel $(vercel --version 2>/dev/null) 설치 완료 (Next.js 인터랙티브 보고서 배포용)"
 
 # ─── 3. Chromium 의존성 + CHROME_PATH 자동 export 자가 검증 ──────
 echo ""
@@ -104,5 +105,8 @@ echo " 그 다음:"
 echo "   1. paperclipai company import https://github.com/dandacompany/brand-intelligence-lab --ref master --yes"
 echo "   2. §3 의 Goal 트리 4개 등록 (콘솔 또는 API)"
 echo "   3. 브랜드 리서처 Skills 탭에서 6종 체크"
-echo "   4. CEO 부트스트랩 이슈 발행 (issue-templates/ceo-bootstrap.md)"
+echo "   4. 콘솔 → Company → Settings → Secrets 에 VERCEL_API_TOKEN 등록"
+echo "      (Vercel 대시보드 → Settings → Tokens 에서 발급. 슬라이드 제작자가"
+echo "       Next.js 보고서를 Vercel 배포할 때 사용. paperclip 이 자동 주입)"
+echo "   5. CEO 부트스트랩 이슈 발행 (issue-templates/ceo-bootstrap.md)"
 echo ""
