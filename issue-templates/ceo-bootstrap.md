@@ -244,13 +244,38 @@ PDF·HTML 로 빌드합니다.
 - 좌측 4px rust accent stripe
 - 금지: 글래스모피즘 · 그라데이션 블롭 · 네온 · blur shadow · 이모지
 
-# 빌드 명령
+# 빌드 명령 (한글 깨짐 방지 + CHROME_PATH 명시 + 자가 검증)
 
 ```bash
 cd /workspace/musinsa
+
+# CHROME_PATH 는 setup.sh 가 ~/.bashrc 에 영속해 두었으면 자동 설정.
+: "${CHROME_PATH:=/paperclip/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome}"
+export CHROME_PATH
+
+# 빌드 전 사전 점검 (세 가지 모두 통과해야 한글 정상 출력):
+#   1) fc-list :lang=ko | head        — Noto Sans/Serif CJK KR 인식 확인
+#   2) ls -la "$CHROME_PATH"          — chromium 바이너리 존재
+#   3) ldd "$CHROME_PATH" | grep "not found"  — 미해결 공유 라이브러리 0건
+# 하나라도 빠지면 즉시 child issue 로 "fonts-noto-cjk 설치" 또는
+# "Chromium 의존성 설치" (apt-get) 인프라 위임. 회사 setup.sh 가 처음에
+# 실행됐다면 세 가지 모두 통과한다.
+
 marp report.md --pdf  --allow-local-files -o report.pdf
 marp report.md --html --allow-local-files -o report.html
+
+# PDF 한글 자가 검증:
+#   pdftotext -enc UTF-8 report.pdf - | head -5
+# 본문에 한글이 □□ 가 아닌 정상 글자로 보이면 OK. □□ 면 fonts-noto-cjk
+# 누락 → fc-cache -fv 후 재빌드.
 ```
+
+# 디자인·폰트 가드 (재차 강조)
+
+- Marp theme 또는 frontmatter style 에 한글 폰트 명시 권장:
+  `style: section { font-family: "Noto Serif CJK KR", "Noto Sans CJK KR", serif; }`
+- 시스템 폰트가 없으면 chromium 이 fallback (Liberation Serif 등) 을 쓰는데, fallback 은 한글 글리프가 없어 □□ 로 출력된다.
+- 빌드 후 반드시 `pdftotext` 또는 PDF 뷰어로 한글 정상 표시 확인을 코멘트에 기록.
 
 # 절대 제약
 

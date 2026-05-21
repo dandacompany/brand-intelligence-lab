@@ -50,9 +50,9 @@ echo ""
 echo "  • brightdata $(brightdata --version 2>/dev/null) 설치 완료"
 echo "  • marp $(marp --version 2>/dev/null | head -1) 설치 완료"
 
-# ─── 3. Chromium 의존성 자가 검증 ────────────────────────────────
+# ─── 3. Chromium 의존성 + CHROME_PATH 자동 export 자가 검증 ──────
 echo ""
-echo "[3/3] Chromium 의존성 자가 검증..."
+echo "[3/4] Chromium 의존성 자가 검증..."
 CHROMIUM=$(find /paperclip/.cache/ms-playwright/chromium-*/chrome-linux64/ -maxdepth 1 -name chrome 2>/dev/null | head -1 || true)
 if [[ -n "$CHROMIUM" ]]; then
   MISSING=$(ldd "$CHROMIUM" 2>/dev/null | grep "not found" || true)
@@ -64,7 +64,28 @@ if [[ -n "$CHROMIUM" ]]; then
   fi
 else
   echo "  (chromium 캐시가 아직 없음 — marp 첫 실행 시 playwright 가 자동 다운로드)"
+  CHROMIUM="/paperclip/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome"
 fi
+
+# ─── 4. CHROME_PATH 환경변수 영속 (marp 가 자동 인식) ────────────
+echo ""
+echo "[4/4] CHROME_PATH 환경변수 영속 (node 사용자 ~/.bashrc) + 폰트 캐시 재구성..."
+NODE_HOME="/paperclip"
+PROFILE="$NODE_HOME/.bashrc"
+if ! grep -q "CHROME_PATH=$CHROMIUM" "$PROFILE" 2>/dev/null; then
+  echo "" >> "$PROFILE"
+  echo "# Marp PDF 빌드용 — Playwright 가 내장한 chromium 을 marp/puppeteer 가 자동 인식" >> "$PROFILE"
+  echo "export CHROME_PATH=\"$CHROMIUM\"" >> "$PROFILE"
+  echo "  ✅ ~/.bashrc 에 export CHROME_PATH 추가"
+else
+  echo "  (이미 등록되어 있음)"
+fi
+chown node:node "$PROFILE" 2>/dev/null || true
+
+# 폰트 캐시 재구성 (방금 설치한 fonts-noto-cjk 가 즉시 인식되도록)
+fc-cache -fv >/dev/null 2>&1 || true
+KOREAN_FONTS=$(fc-list :lang=ko 2>/dev/null | wc -l)
+echo "  ✅ 한글 폰트 ${KOREAN_FONTS}개 인식됨 (Noto Sans/Serif CJK KR)"
 
 # ─── 마무리 안내 ─────────────────────────────────────────────────
 echo ""
